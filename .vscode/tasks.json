@@ -1,0 +1,51 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Open .sna with FUSE",
+            "type": "shell",
+            "command": "open",
+            "args": [
+                "${fileBasenameNoExtension}.sna"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Compile Z80 ASM with sjasmplus","Renaming"
+            ]
+        },
+        {
+            "label": "Renaming",
+            "type": "shell",
+            "command": "./finalize.sh",
+            "args": [
+                "${fileBasenameNoExtension}"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Compile Z80 ASM with sjasmplus",
+            "type": "shell",
+            "command": "sjasmplus",
+            "args": [
+                "--lst",
+                "${fileBasenameNoExtension}.asm"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": []
+        }
+    ]
+}

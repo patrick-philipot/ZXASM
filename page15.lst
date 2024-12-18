@@ -1,0 +1,110 @@
+# file opened: page15.asm
+ 1    0000
+ 2    0000                 DEVICE ZXSPECTRUM48
+ 3    0000                       ORG 30000
+ 4    7530              start:
+ 5    7530 21 00 58              LD HL, 22528
+ 6    7533 06 10                 LD B, 16
+ 7    7535 36 28        LOOP    LD (HL), 40
+ 8    7537 23                    INC HL
+ 9    7538 36 08                 LD (HL), 8
+10    753A 23                    INC HL
+11    753B 10 F8                 DJNZ LOOP
+12    753D C9                    RET
+13    753E
+14    753E              ; Deployment
+15    753E              LENGTH      equ $ - start
+16    753E
+17    753E
+18    753E                 ;;   Cette partie est gérée par TapLib.asm
+19    753E                 include TapLib.asm
+# file opened: TapLib.asm
+ 1+   753E              ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ 2+   753E              ;; Busy soft ;; 26.11.2018 ;; Tape generating library ;;
+ 3+   753E              ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ 4+   753E
+ 5+   753E              ;; Use:
+ 6+   753E              ;;
+ 7+   753E              ;;   .................
+ 8+   753E              ;;   ...your...code...
+ 9+   753E              ;;   .................
+10+   753E              ;;   include "TapLib.asm"
+11+   753E              ;;   MakeTape <speccy_model>, <tape_file>, <program_name>, <start_address>, <code_length>, <call_address>
+12+   753E
+13+   753E              	MACRO	MakeTape speccy_model, tape_file, prog_name, start_add, code_len, call_add
+14+   753E ~            	DEVICE	speccy_model
+15+   753E ~
+16+   753E ~            CODE	=	#AF
+17+   753E ~            USR	=	#C0
+18+   753E ~            LOAD	=	#EF
+19+   753E ~            CLEAR	=	#FD
+20+   753E ~            RANDOMIZE =	#F9
+21+   753E ~
+22+   753E ~            	org	#5C00
+23+   753E ~            baszac	db	0,1			;; Line number
+24+   753E ~            	dw	linlen			;; Line length
+25+   753E ~            linzac
+26+   753E ~            	db	CLEAR,'8',#0E,0,0
+27+   753E ~            	dw	start_add-1
+28+   753E ~            	db	0,':'
+29+   753E ~            	db	LOAD,'"'
+30+   753E ~            codnam	ds	10,32
+31+   753E ~            	org	codnam
+32+   753E ~            	db	prog_name
+33+   753E ~            	org	codnam+10
+34+   753E ~            	db	'"',CODE,':'
+35+   753E ~            	db	RANDOMIZE,USR,'8',#0E,0,0
+36+   753E ~            	dw	call_add
+37+   753E ~            	db	0,#0D
+38+   753E ~            linlen	=	$-linzac
+39+   753E ~            baslen	=	$-baszac
+40+   753E ~
+41+   753E ~            	EMPTYTAP tape_file
+42+   753E ~            	SAVETAP  tape_file,BASIC,prog_name,baszac,baslen,1
+43+   753E ~            	SAVETAP  tape_file,CODE,prog_name,start_add,code_len,start_add
+44+   753E ~
+45+   753E              	ENDM
+46+   753E
+# file closed: TapLib.asm
+20    753E                 ;;   MakeTape <speccy_model>, <tape_file>, <program_name>, <start_address>, <code_length>, <call_address>
+21    753E
+22    753E                 ; option 1: tape
+23    753E                 MakeTape ZXSPECTRUM48, "_tape.tap", "tapefile", start, LENGTH, start
+23    753E             >	DEVICE	ZXSPECTRUM48
+23    753E             >
+23    753E             >CODE	=	#AF
+23    753E             >USR	=	#C0
+23    753E             >LOAD	=	#EF
+23    753E             >CLEAR	=	#FD
+23    753E             >RANDOMIZE =	#F9
+23    753E             >
+23    753E             >	org	#5C00
+23    5C00 00 01       >baszac	db	0,1			;; Line number
+23    5C02 22 00       >	dw	linlen			;; Line length
+23    5C04             >linzac
+23    5C04 FD 38 0E 00 >	db	CLEAR,'8',#0E,0,0
+23    5C08 00          >
+23    5C09 2F 75       >	dw	start-1
+23    5C0B 00 3A       >	db	0,':'
+23    5C0D EF 22       >	db	LOAD,'"'
+23    5C0F 20 20 20... >codnam	ds	10,32
+23    5C19             >	org	codnam
+23    5C0F 74 61 70 65 >	db	"tapefile"
+23    5C13 66 69 6C 65 >
+23    5C17             >	org	codnam+10
+23    5C19 22 AF 3A    >	db	'"',CODE,':'
+23    5C1C F9 C0 38 0E >	db	RANDOMIZE,USR,'8',#0E,0,0
+23    5C20 00 00       >
+23    5C22 30 75       >	dw	start
+23    5C24 00 0D       >	db	0,#0D
+23    5C26             >linlen	=	$-linzac
+23    5C26             >baslen	=	$-baszac
+23    5C26             >
+23    5C26             >	EMPTYTAP "_tape.tap"
+23    5C26             >	SAVETAP  "_tape.tap",BASIC,"tapefile",baszac,baslen,1
+23    5C26             >	SAVETAP  "_tape.tap",CODE,"tapefile",start,LENGTH,start
+23    5C26             >
+24    5C26
+25    5C26                 ; option 2: snapshot
+26    5C26                 SAVESNA "_snapshot.sna", start
+# file closed: page15.asm
