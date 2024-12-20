@@ -1,0 +1,142 @@
+# file opened: sprite.asm
+ 1    0000
+ 2    0000                 DEVICE ZXSPECTRUM48
+ 3    0000                    org 30000
+ 4    7530
+ 5    7530              LASTK equ  23560
+ 6    7530              PRINT equ  8252
+ 7    7530
+ 8    7530              start:
+ 9    7530 3E 02              ld a, 2
+10    7532 CD 01 16           call 5633
+11    7535 21 6E 75           ld hl, GFX
+12    7538 22 7B 5C           ld (23675), hl
+13    753B
+14    753B CD 60 75     MAINL call PPLAY
+15    753E 3A 08 5C           ld a, (LASTK)
+16    7541 FE 6F              cp "o"
+17    7543 28 00              jr z, GLEFT
+18    7545
+19    7545 3E 20        GLEFT ld a, " "
+20    7547 32 6D 75           ld (PLAYER+3), a
+21    754A CD 60 75           call PPLAY
+22    754D 3E 90              ld a, 144
+23    754F 32 6D 75           ld (PLAYER+3), a
+24    7552 3A 6C 75           ld a, (PLAYER+2)
+25    7555 3D                 dec a
+26    7556 32 6C 75           ld (PLAYER+2), a
+27    7559 3E 00              ld a, 0
+28    755B 32 08 5C           ld (LASTK), a
+29    755E 18 DB              jr MAINL
+30    7560
+31    7560              GRIGH equ $
+32    7560
+33    7560 11 6A 75     PPLAY ld de, PLAYER
+34    7563 01 04 00           ld bc, EOPLAYER-PLAYER
+35    7566 CD 3C 20           call PRINT
+36    7569 C9                 ret
+37    756A
+38    756A 16 15 0F 90  PLAYER   defb 22,21,15,144
+39    756E              EOPLAYER equ $
+40    756E
+41    756E 18 18 FF BD  GFX   defb 24, 24, 255, 189, 189, 60, 36, 102
+41    7572 BD 3C 24 66
+42    7576
+43    7576
+44    7576
+45    7576              ; Deployment
+46    7576              LENGTH      equ $ - start
+47    7576
+48    7576
+49    7576                 ;;   Cette partie est gérée par TapLib.asm
+50    7576                 include TapLib.asm
+# file opened: TapLib.asm
+ 1+   7576              ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ 2+   7576              ;; Busy soft ;; 26.11.2018 ;; Tape generating library ;;
+ 3+   7576              ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ 4+   7576
+ 5+   7576              ;; Use:
+ 6+   7576              ;;
+ 7+   7576              ;;   .................
+ 8+   7576              ;;   ...your...code...
+ 9+   7576              ;;   .................
+10+   7576              ;;   include "TapLib.asm"
+11+   7576              ;;   MakeTape <speccy_model>, <tape_file>, <program_name>, <start_address>, <code_length>, <call_address>
+12+   7576
+13+   7576              	MACRO	MakeTape speccy_model, tape_file, prog_name, start_add, code_len, call_add
+14+   7576 ~            	DEVICE	speccy_model
+15+   7576 ~
+16+   7576 ~            CODE	=	#AF
+17+   7576 ~            USR	=	#C0
+18+   7576 ~            LOAD	=	#EF
+19+   7576 ~            CLEAR	=	#FD
+20+   7576 ~            RANDOMIZE =	#F9
+21+   7576 ~
+22+   7576 ~            	org	#5C00
+23+   7576 ~            baszac	db	0,1			;; Line number
+24+   7576 ~            	dw	linlen			;; Line length
+25+   7576 ~            linzac
+26+   7576 ~            	db	CLEAR,'8',#0E,0,0
+27+   7576 ~            	dw	start_add-1
+28+   7576 ~            	db	0,':'
+29+   7576 ~            	db	LOAD,'"'
+30+   7576 ~            codnam	ds	10,32
+31+   7576 ~            	org	codnam
+32+   7576 ~            	db	prog_name
+33+   7576 ~            	org	codnam+10
+34+   7576 ~            	db	'"',CODE,':'
+35+   7576 ~            	db	RANDOMIZE,USR,'8',#0E,0,0
+36+   7576 ~            	dw	call_add
+37+   7576 ~            	db	0,#0D
+38+   7576 ~            linlen	=	$-linzac
+39+   7576 ~            baslen	=	$-baszac
+40+   7576 ~
+41+   7576 ~            	EMPTYTAP tape_file
+42+   7576 ~            	SAVETAP  tape_file,BASIC,prog_name,baszac,baslen,1
+43+   7576 ~            	SAVETAP  tape_file,CODE,prog_name,start_add,code_len,start_add
+44+   7576 ~
+45+   7576              	ENDM
+46+   7576
+# file closed: TapLib.asm
+51    7576                 ;;   MakeTape <speccy_model>, <tape_file>, <program_name>, <start_address>, <code_length>, <call_address>
+52    7576
+53    7576                 ; option 1: tape
+54    7576                 MakeTape ZXSPECTRUM48, "_tape.tap", "tapefile", start, LENGTH, start
+54    7576             >	DEVICE	ZXSPECTRUM48
+54    7576             >
+54    7576             >CODE	=	#AF
+54    7576             >USR	=	#C0
+54    7576             >LOAD	=	#EF
+54    7576             >CLEAR	=	#FD
+54    7576             >RANDOMIZE =	#F9
+54    7576             >
+54    7576             >	org	#5C00
+54    5C00 00 01       >baszac	db	0,1			;; Line number
+54    5C02 22 00       >	dw	linlen			;; Line length
+54    5C04             >linzac
+54    5C04 FD 38 0E 00 >	db	CLEAR,'8',#0E,0,0
+54    5C08 00          >
+54    5C09 2F 75       >	dw	start-1
+54    5C0B 00 3A       >	db	0,':'
+54    5C0D EF 22       >	db	LOAD,'"'
+54    5C0F 20 20 20... >codnam	ds	10,32
+54    5C19             >	org	codnam
+54    5C0F 74 61 70 65 >	db	"tapefile"
+54    5C13 66 69 6C 65 >
+54    5C17             >	org	codnam+10
+54    5C19 22 AF 3A    >	db	'"',CODE,':'
+54    5C1C F9 C0 38 0E >	db	RANDOMIZE,USR,'8',#0E,0,0
+54    5C20 00 00       >
+54    5C22 30 75       >	dw	start
+54    5C24 00 0D       >	db	0,#0D
+54    5C26             >linlen	=	$-linzac
+54    5C26             >baslen	=	$-baszac
+54    5C26             >
+54    5C26             >	EMPTYTAP "_tape.tap"
+54    5C26             >	SAVETAP  "_tape.tap",BASIC,"tapefile",baszac,baslen,1
+54    5C26             >	SAVETAP  "_tape.tap",CODE,"tapefile",start,LENGTH,start
+54    5C26             >
+55    5C26
+56    5C26                 ; option 2: snapshot
+57    5C26                 SAVESNA "_snapshot.sna", start
+# file closed: sprite.asm

@@ -1,0 +1,4 @@
+# ne pas conserver .sna et .tap
+*.tap
+*.sna
+
